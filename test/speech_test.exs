@@ -21,5 +21,6 @@ defmodule SpeechTest do
     speech = Speech.extract_data_from_speech(raw_speech)
     assert speech.numeroquarto == 4
     assert speech.numeroinsercao == 0
+    assert speech.numeroorador == 1
   end
 end

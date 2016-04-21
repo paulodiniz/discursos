@@ -24,7 +24,7 @@ defmodule Speech do
 
   def extract_data_from_speech(raw_speech) do
     {"discurso", [],[
-        { "orador", _, _},
+        { "orador", [], [{"numero", [], [numorador]} | _ ]},
         { "horainiciodiscurso", _, _ },
         { "txtindexacao", _, _ },
         { "numeroquarto", _, [numquarto] },
@@ -34,8 +34,9 @@ defmodule Speech do
 
     { numinsercao, _ } = Integer.parse(numinsercao)
     { numquarto, _ } = Integer.parse(numquarto)
+    { numorador, _ } = Integer.parse(numorador)
 
-    %{numeroinsercao: numinsercao, numeroquarto: numquarto}
+    %{numeroinsercao: numinsercao, numeroquarto: numquarto, numeroorador: numorador }
   end
 
   def url_for_session(session_id, date) do
