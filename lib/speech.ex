@@ -3,23 +3,67 @@ defmodule Speech do
   
   @sessions [["082.2.55.O", "15/04/16"]]
   @list_speeches_url "http://www.camara.gov.br/sitcamaraws/SessoesReunioes.asmx/ListarDiscursosPlenario"
-  @user_agent  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 
+  @speech_url "http://www.camara.gov.br/SitCamaraWS/SessoesReunioes.asmx/obterInteiroTeorDiscursosPlenario"
+  @user_agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 
+
+  def speeches_to_map(speeches) do
+  end
 
   # Fetch data for all the sessions
   def fetch_sessions_speeches do
-    Enum.map(@sessions, &fetch_session_speeches(&1))
+    @sessions
+    |> Enum.map(&fetch_session_data(&1))
+    |> Enum.map(&fetch_session_speeches(&1))
+    |> reduce_speeches
   end
 
-  # Fetch metadata off all speeches in a sessions ocurring in a specific date
-  def fetch_session_speeches([session_id, date]) do
+  def reduce_speeches(sessions_speeches) do
+    Enum.reduce(sessions_speeches, [], fn session_speeches, acc -> acc ++ session_speeches end)
+  end
+
+  def fetch_session_speeches(speeches_data) do
+    speeches_data |> Enum.map(&fetch_session_speech(&1))
+  end
+
+  def fetch_session_speech(speech_data) do
+    url_for_speech(speech_data.codigosessao, speech_data.numeroorador, speech_data.numeroquarto, speech_data.numeroinsercao)
+    |> HTTPotion.get(headers: ["User-Agent": @user_agent ])
+    |> parse_speech_response
+  end
+
+  # Returns array of metadata of session ocurring on that date
+  def fetch_session_data([session_id, date]) do
     url_for_session(session_id, date)
     |> HTTPotion.get(headers: ["User-Agent": @user_agent ])
-    |> parse_response(session_id)
+    |> parse_session_data(session_id)
   end
 
-  def parse_response(%HTTPotion.Response{body: body, headers: headers, status_code: 200}, session_id) do
+  # Returns an array of speech meta data
+  def parse_session_data(%HTTPotion.Response{body: body, headers: _, status_code: 200}, session_id) do
     [{"discursos", [], speeches}] = Floki.find(body, "discursos")
     Enum.map(speeches, &extract_data_from_speech(&1, session_id))
+  end
+
+  def parse_speech_response(%HTTPotion.Response{body: body, headers: _, status_code: 200}) do
+    session_body = Floki.find(body, "sessao")
+
+    case session_body do
+      [{"sessao", [],
+          [{"nome", [], [deputy]},
+            {"partido", [], [party]}, {"uf", [], [uf]},
+            {"horainiciodiscurso", [], [_]},
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: party, uf: uf, speech: speech }
+      [{"sessao", [],
+          [{"nome", [], [deputy]},
+            {"partido", [], []}, {"uf", [], [uf]},
+            {"horainiciodiscurso", [], [_]},
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: uf, speech: speech }
+      [{"sessao", [],
+          [{"nome", [], [deputy]},
+            {"partido", [], []}, {"uf", [], []},
+            {"horainiciodiscurso", [], [_]},
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: "ND", speech: speech }
+    end
   end
 
   def extract_data_from_speech(raw_speech, session_id) do
@@ -32,14 +76,14 @@ defmodule Speech do
         { "sumario", _, _}
       ]} = raw_speech
 
-    { numinsercao, _ } = Integer.parse(numinsercao)
-    { numquarto, _ } = Integer.parse(numquarto)
-    { numorador, _ } = Integer.parse(numorador)
-
     %{ numeroinsercao: numinsercao, numeroquarto: numquarto, numeroorador: numorador, codigosessao: session_id }
   end
 
   def url_for_session(session_id, date) do
     @list_speeches_url <> "?codigoSessao=" <> session_id <> "&dataIni=" <> date <> "&dataFim=" <> date <> "&parteNomeParlamentar=&siglaPartido=&siglaUF="
+  end
+
+  def url_for_speech(session_code, speaker_number, room_number, insertion_number) do
+    @speech_url <> "?codSessao=" <> session_code <> "&numOrador="<> speaker_number <> "&numQuarto=" <> room_number <> "&numInsercao=" <> insertion_number
   end
 end

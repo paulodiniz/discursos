@@ -19,9 +19,17 @@ defmodule SpeechTest do
           ["Esclarecimentos ao Plenário sobre inscrição de Deputados para uso da palavra."]}]}
 
     speech = Speech.extract_data_from_speech(raw_speech, '0.88')
-    assert speech.numeroquarto == 4
-    assert speech.numeroinsercao == 0
-    assert speech.numeroorador == 1
+    assert speech.numeroquarto == "4"
+    assert speech.numeroinsercao == "0"
+    assert speech.numeroorador == "1"
     assert speech.codigosessao == '0.88'
   end
+
+  test "reducing" do
+    assert Speech.reduce_speeches([['1', '2'], ['3', '5'], ['6']]) == ['1', '2', '3', '5', '6']
+  end
+
+  test 'speeches to map' do
+  end
+
 end
