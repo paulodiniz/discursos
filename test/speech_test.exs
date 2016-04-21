@@ -18,9 +18,10 @@ defmodule SpeechTest do
         {"sumario", [],
           ["Esclarecimentos ao Plenário sobre inscrição de Deputados para uso da palavra."]}]}
 
-    speech = Speech.extract_data_from_speech(raw_speech)
+    speech = Speech.extract_data_from_speech(raw_speech, '0.88')
     assert speech.numeroquarto == 4
     assert speech.numeroinsercao == 0
     assert speech.numeroorador == 1
+    assert speech.codigosessao == '0.88'
   end
 end
