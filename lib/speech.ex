@@ -7,6 +7,30 @@ defmodule Speech do
   @user_agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 
 
   def speeches_to_map(speeches) do
+    Enum.reduce(speeches, [], fn speech, acc ->
+      # check if acc has object with same name and party  
+      # case yes, update speeches
+      # case no, insert object to acc
+      case Speech.already_mapped?(acc, speech) do
+        true  -> update_speech(speeches, speech)
+        false -> [ speech | acc ]
+      end
+    end)
+  end
+
+  def update_speech(speeches, speech) do
+    old_speech_index = Enum.find_index(speeches, fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
+    old_speech = Enum.at(speeches, old_speech_index)
+
+    new_list = List.delete_at(speeches, old_speech_index)
+    old_speech_index = Enum.find_index(new_list, fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
+    List.update_at(new_list, old_speech_index, fn (elem) ->
+      %{deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: ["ABC", "DEF"]}
+    end)
+  end
+
+  def already_mapped?(speeches, speech) do
+    Enum.any?(speeches, fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
   end
 
   # Fetch data for all the sessions
@@ -15,6 +39,7 @@ defmodule Speech do
     |> Enum.map(&fetch_session_data(&1))
     |> Enum.map(&fetch_session_speeches(&1))
     |> reduce_speeches
+    |> speeches_to_map
   end
 
   def reduce_speeches(sessions_speeches) do
