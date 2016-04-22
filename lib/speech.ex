@@ -19,15 +19,16 @@ defmodule Speech do
   end
 
   def update_speech(speeches, speech) do
-    old_speech_index = Enum.find_index(speeches, fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
-    old_speech = Enum.at(speeches, old_speech_index)
-
-    new_list = List.delete_at(speeches, old_speech_index)
-    old_speech_index = Enum.find_index(new_list, fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
-    List.update_at(new_list, old_speech_index, fn (elem) ->
-      %{deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: ["ABC", "DEF"]}
+    { speeches_to_reduce, speeches_wo } = Enum.partition(speeches,fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
+    speeches_combined = Enum.reduce(speeches_to_reduce, [], fn s, acc ->
+      [ List.first(s.speeches) | acc ]
     end)
+
+    new_speech = %{ deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: speeches_combined }
+
+    [ new_speech | speeches_wo ]
   end
+
 
   def already_mapped?(speeches, speech) do
     Enum.any?(speeches, fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
@@ -77,17 +78,17 @@ defmodule Speech do
           [{"nome", [], [deputy]},
             {"partido", [], [party]}, {"uf", [], [uf]},
             {"horainiciodiscurso", [], [_]},
-            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: party, uf: uf, speech: speech }
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: party, uf: uf, speeches: [speech] }
       [{"sessao", [],
           [{"nome", [], [deputy]},
             {"partido", [], []}, {"uf", [], [uf]},
             {"horainiciodiscurso", [], [_]},
-            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: uf, speech: speech }
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: uf, speeches: [speech] }
       [{"sessao", [],
           [{"nome", [], [deputy]},
             {"partido", [], []}, {"uf", [], []},
             {"horainiciodiscurso", [], [_]},
-            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: "ND", speech: speech }
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: "ND", speeches: [speech] }
     end
   end
 
