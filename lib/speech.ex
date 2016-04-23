@@ -7,25 +7,23 @@ defmodule Speech do
   @user_agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 
 
   def speeches_to_map(speeches) do
-    Enum.reduce(speeches, [], fn(speech, acc) ->
-      # check if acc has object with same name and party  
-      # case yes, update speeches
-      # case no, insert object to acc
-      case Speech.already_mapped?(speeches, speech) do
-        true  -> update_speech(speeches, speech)
-        false -> [ speech | acc ]
-      end
-    end)
+    speeches_to_map(speeches, [])
   end
 
-  def update_speech(speeches, speech) do
-    { speeches_to_reduce, speeches_wo } = Enum.partition(speeches,fn(e) -> e.deputy == speech.deputy end)
-    speeches_combined = Enum.reduce(speeches_to_reduce, [], fn s, acc ->
-      [ List.first(s.speeches) | acc ]
-    end)
+  def speeches_to_map(speeches, acc) do
+    case speeches do
+      [ speech | tail ] ->
+        { speeches_to_reduce, speeches_wo } = Enum.partition(speeches,fn(e) -> e.deputy == speech.deputy end)
+      speeches_combined = Enum.reduce(speeches_to_reduce, [], fn s, acc ->
+        [ List.first(s.speeches) | acc ]
+      end)
 
-    [ %{deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: speeches_combined } | speeches_wo ]
+      new_speech = %{deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: speeches_combined } 
 
+      speeches_to_map(speeches_wo, [ new_speech | acc])
+
+      [] -> acc
+    end
   end
 
   def already_mapped?(speeches, speech) do
