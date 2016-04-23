@@ -44,7 +44,7 @@ defmodule Speech do
   end
 
   def save_to_file(json_content) do
-    {:ok, file} = File.open "hello.json", [:write]
+    {:ok, file} = File.open "speeches.json", [:write]
     IO.binwrite file, json_content
     File.close file
   end
