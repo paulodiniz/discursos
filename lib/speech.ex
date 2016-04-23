@@ -37,8 +37,8 @@ defmodule Speech do
     @sessions 
     |> Enum.map(&fetch_session_data(&1)) 
     |> Enum.map(&fetch_session_speeches(&1))
-    |> reduce_speeches(result)
-    |> speeches_to_map(reduced)
+    |> reduce_speeches
+    |> speeches_to_map
   end
 
   def fetch_speeches_to_json do
