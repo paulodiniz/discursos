@@ -84,17 +84,17 @@ defmodule Speech do
           [{"nome", [], [deputy]},
             {"partido", [], [party]}, {"uf", [], [uf]},
             {"horainiciodiscurso", [], [_]},
-            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: String.strip(party), uf: uf, speeches: [speech] }
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: String.strip(party), uf: uf, speeches: [decode_speech(speech)] }
       [{"sessao", [],
           [{"nome", [], [deputy]},
             {"partido", [], []}, {"uf", [], [uf]},
             {"horainiciodiscurso", [], [_]},
-            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: uf, speeches: [speech] }
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: uf, speeches: [decode_speech(speech)] }
       [{"sessao", [],
           [{"nome", [], [deputy]},
             {"partido", [], []}, {"uf", [], []},
             {"horainiciodiscurso", [], [_]},
-            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: "ND", speeches: [speech] }
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: "SEM PARTIDO", uf: "ND", speeches: [decode_speech(speech)] }
     end
   end
 
@@ -118,4 +118,40 @@ defmodule Speech do
   def url_for_speech(session_code, speaker_number, room_number, insertion_number) do
     @speech_url <> "?codSessao=" <> session_code <> "&numOrador="<> speaker_number <> "&numQuarto=" <> room_number <> "&numInsercao=" <> insertion_number
   end
+
+  def decode_speech(speech) do
+    {:ok, decoded } = Base.decode64(speech)
+    decoded 
+     |> to_plain 
+     |> Base.encode64
+  end
+
+  def to_plain(speech) do
+    if !File.dir?(".temp"), do: File.mkdir ".temp"
+    name = "/Users/paulodiniz/elixir/discurso_camara/speech/.temp/" <> random_name
+    temp_name = name <> ".tmp"
+    txt_name = name <> ".txt"
+    File.write temp_name, speech
+    System.cmd "textutil", [temp_name, "-convert", "txt"]
+    {:ok, plain_text } = File.read txt_name
+    File.rm temp_name
+    File.rm txt_name
+
+    plain_text
+  end
+
+  defp random_name do
+    random_string <> "-" <> timestamp
+  end
+
+  defp random_string do
+    :random.seed(:erlang.monotonic_time, :erlang.time_offset, :erlang.unique_integer)
+    0x100000000000000 |> :random.uniform |> Integer.to_string(36) |> String.downcase
+  end
+
+  defp timestamp do
+    {megasec, sec, _microsec} = :os.timestamp
+    megasec*1_000_000 + sec |> Integer.to_string()
+  end
 end
+
