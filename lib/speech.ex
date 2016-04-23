@@ -1,7 +1,7 @@
 defmodule Speech do
   require IEx
   
-  @sessions [["082.2.55.O", "15/04/16"]]
+  @sessions [["082.2.55.O", "15/04/16"], ["087.2.55.O", "16/04/16"], ["084.2.55.O", "15/04/16"], ["085.2.55.O", "15/04/16"], ["086.2.55.O", "16/04/16"], ["089.2.55.O", "16/04/16"], ["090.2.55.O", "16/04/16"], ["083.2.55.O", "15/04/16"], ["088.2.55.O", "16/04/16"], ["091.2.55.O", "17/04/16"]]
   @list_speeches_url "http://www.camara.gov.br/sitcamaraws/SessoesReunioes.asmx/ListarDiscursosPlenario"
   @speech_url "http://www.camara.gov.br/SitCamaraWS/SessoesReunioes.asmx/obterInteiroTeorDiscursosPlenario"
   @user_agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 
