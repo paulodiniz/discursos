@@ -24,6 +24,7 @@ defmodule Speech do
       [ List.first(s.speeches) | acc ]
     end)
 
+    IEx.pry
     [ %{deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: speeches_combined } | speeches_wo ]
 
   end
@@ -34,11 +35,14 @@ defmodule Speech do
 
   # Fetch data for all the sessions
   def fetch_sessions_speeches do
-    @sessions
-    |> Enum.map(&fetch_session_data(&1))
-    |> Enum.map(&fetch_session_speeches(&1))
-    |> reduce_speeches
-    |> speeches_to_map
+    result = @sessions |> Enum.map(&fetch_session_data(&1)) |> Enum.map(&fetch_session_speeches(&1))
+    
+    reduced = reduce_speeches(result)
+    IEx.pry
+    to_map = speeches_to_map(reduced)
+    IEx.pry
+    to_map
+    #result |> reduce_speeches |> speeches_to_map
   end
 
   def fetch_speeches_to_json do
