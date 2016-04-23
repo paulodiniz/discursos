@@ -30,8 +30,8 @@ defmodule SpeechTest do
   end
 
   test 'speeches to map' do
-    speeches = [%{deputy: "Eduardo Cunha", party: "PMDB", speeches: ["ABC"], uf: "RJ"}, %{deputy: "Arlindo", party: "PT", speeches: ["My speech"]}, %{deputy: "Eduardo Cunha", party: "PMDB", speeches: ["DEF"], uf: "RJ"}]
-    assert Speech.speeches_to_map(speeches) == [%{deputy: "Eduardo Cunha", party: "PMDB", speeches: ["DEF", "ABC"], uf: "RJ"}, %{deputy: "Arlindo", party: "PT", speeches: ["My speech"]}]
+    speeches = [%{deputy: "Eduardo Cunha", party: "PMDB", speeches: ["ABC"], uf: "RJ"}, %{deputy: "Arlindo", party: "PT", speeches: ["My speech"], uf: "SP"}, %{deputy: "Eduardo Cunha", party: "PMDB", speeches: ["DEF"], uf: "RJ"}]
+    assert Speech.speeches_to_map(speeches) == [%{deputy: "Eduardo Cunha", party: "PMDB", speeches: ["DEF", "ABC"], uf: "RJ"}, %{deputy: "Arlindo", party: "PT", speeches: ["My speech"], uf: "SP"}]
   end
 
   test 'already mapped?' do

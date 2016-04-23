@@ -7,11 +7,11 @@ defmodule Speech do
   @user_agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 
 
   def speeches_to_map(speeches) do
-    Enum.reduce(speeches, [], fn speech, acc ->
+    Enum.reduce(speeches, [], fn(speech, acc) ->
       # check if acc has object with same name and party  
       # case yes, update speeches
       # case no, insert object to acc
-      case Speech.already_mapped?(acc, speech) do
+      case Speech.already_mapped?(speeches, speech) do
         true  -> update_speech(speeches, speech)
         false -> [ speech | acc ]
       end
@@ -19,16 +19,14 @@ defmodule Speech do
   end
 
   def update_speech(speeches, speech) do
-    { speeches_to_reduce, speeches_wo } = Enum.partition(speeches,fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
+    { speeches_to_reduce, speeches_wo } = Enum.partition(speeches,fn(e) -> e.deputy == speech.deputy end)
     speeches_combined = Enum.reduce(speeches_to_reduce, [], fn s, acc ->
       [ List.first(s.speeches) | acc ]
     end)
 
-    new_speech = %{ deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: speeches_combined }
+    [ %{deputy: speech.deputy, party: speech.party, uf: speech.uf, speeches: speeches_combined } | speeches_wo ]
 
-    [ new_speech | speeches_wo ]
   end
-
 
   def already_mapped?(speeches, speech) do
     Enum.any?(speeches, fn(e) -> e.deputy == speech.deputy && e.party == speech.party end)
@@ -41,6 +39,16 @@ defmodule Speech do
     |> Enum.map(&fetch_session_speeches(&1))
     |> reduce_speeches
     |> speeches_to_map
+  end
+
+  def fetch_speeches_to_json do
+    fetch_sessions_speeches |> Poison.encode! |> save_to_file
+  end
+
+  def save_to_file(json_content) do
+    {:ok, file} = File.open "hello.json", [:write]
+    IO.binwrite file, json_content
+    File.close file
   end
 
   def reduce_speeches(sessions_speeches) do
@@ -78,7 +86,7 @@ defmodule Speech do
           [{"nome", [], [deputy]},
             {"partido", [], [party]}, {"uf", [], [uf]},
             {"horainiciodiscurso", [], [_]},
-            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: party, uf: uf, speeches: [speech] }
+            {"discursortfbase64", [], [speech]}]}] -> %{ deputy: deputy, party: String.strip(party), uf: uf, speeches: [speech] }
       [{"sessao", [],
           [{"nome", [], [deputy]},
             {"partido", [], []}, {"uf", [], [uf]},

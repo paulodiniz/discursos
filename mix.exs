@@ -27,6 +27,6 @@ defmodule Speech.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:httpotion, "~> 2.2.0"}, {:floki, "~> 0.8"}]
+    [{:httpotion, "~> 2.2.0"}, {:floki, "~> 0.8"}, {:poison, "~> 2.0"}]
   end
 end
