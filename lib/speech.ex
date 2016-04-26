@@ -12,7 +12,7 @@ defmodule Speech do
 
   def speeches_to_map(speeches, acc) do
     case speeches do
-      [ speech | tail ] ->
+      [ speech | _ ] ->
         { speeches_to_reduce, speeches_wo } = Enum.partition(speeches,fn(e) -> e.deputy == speech.deputy end)
       speeches_combined = Enum.reduce(speeches_to_reduce, [], fn s, acc ->
         [ List.first(s.speeches) | acc ]
@@ -121,9 +121,7 @@ defmodule Speech do
 
   def decode_speech(speech) do
     {:ok, decoded } = Base.decode64(speech)
-    decoded 
-     |> to_plain 
-     |> Base.encode64
+    decoded |> to_plain 
   end
 
   def to_plain(speech) do
